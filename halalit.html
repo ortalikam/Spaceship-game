@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>space-ship GAME</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+        <style>
+            body {
+                background-color: gray;
+            }
+
+            #board {
+                width: 650px;
+                height: 400px;
+                background-color: white;
+                position: relative;
+            }
+
+            img {
+                position: absolute;
+                width: 50px;
+                height: 40px;
+                top: 360px;
+            }
+            /*rect {
+
+                width: 15px;
+                height: 15px;
+                background-color:blue;
+                display:inline;
+
+
+            }*/
+            .gun {
+                width: 20px;
+                height: 20px;
+                background-color: green;
+                position: absolute;
+            }
+
+            .spaceShip, .command, .mother {
+                width: 20px;
+                height: 20px;
+                background-color: red;
+                position: absolute;
+                /*position: absolute;*/
+            }
+
+            .command {
+                background-color: blue;
+            }
+
+            .mother {
+                background-color: pink;
+            }
+            
+        </style>
+        <script>
+            var countSpaceShip = 0;
+            var width = 650;
+            var height = 400;
+            var endGame = 100;
+            var min = ((window.innerWidth - width) / 2);
+            var max = ((window.innerWidth + width) / 2);
+            var spaceships = [
+                     { class: "spaceShip", hit: 0, point: 0, hitScore: 10, count: 0 },
+                     { class: "command", hit: 0, point: 0, hitScore: 25, count: 0 },
+                     { class: "mother", hit: 0, point: 0, hitScore: 50, count: 0 }];
+            
+            function updateTable() {
+                //hit
+                $("#spaceshipHit").html(spaceships[0].hit + "/" + spaceships[0].count);
+                $("#commendHit").html(spaceships[1].hit + "/" + spaceships[1].count);
+                $("#motherHit").html(spaceships[2].hit + "/" + spaceships[2].count);
+                var totalHit = spaceships[0].hit + spaceships[1].hit + spaceships[2].hit;
+                var totalCount = spaceships[0].count + spaceships[1].count + spaceships[2].count;
+                $("#totalHit").html(totalHit + "/" + totalCount);
+                //calc point
+                spaceships[0].point=spaceships[0].hit * spaceships[0].hitScore;
+                spaceships[1].point = spaceships[1].hit * spaceships[1].hitScore;
+                spaceships[2].point = spaceships[2].hit * spaceships[2].hitScore;
+                //update point in table
+                $("#spaceshipPoint").html(spaceships[0].point);
+                $("#commendPoint").html(spaceships[1].point);
+                $("#motherPoint").html(spaceships[2].point);
+                $("#totalPoint").html(spaceships[0].point + spaceships[1].point + spaceships[2].point);
+            }
+            function checkKey() {
+
+                var hLeft = parseInt($("#halalit").css("left"));
+                var hTop = parseInt($("#halalit").css("top"));
+
+
+                if (window.event.keyCode == "39") // right arrow
+                {
+                    $("#halalit").css("left", Math.min(width - 50, parseInt(hLeft) + parseInt("40")) + "px");
+                }
+                if (window.event.keyCode == "37") // left arrow
+                {
+                    $("#halalit").css("left", Math.max(0, hLeft - "40") + "px");
+                }
+                if (window.event.keyCode == "38")// up arrow
+                {
+
+
+                    var $gun = $("<div>").attr("class", "gun")
+                        .css({ "left": hLeft + 15, "top": hTop }).animate({ 'top': "-=360" }, {
+                            duration: 1300,
+                            easing: "linear",
+                            progress: function (obj, precenge, time) {
+                                checkgun($(this));
+                            },
+                            complete: function () {
+                                $(this).remove();
+                            }
+                        });
+                    $("#board").append($gun);
+
+                }
+            }
+            function game() {
+
+                var rand = Math.random();
+                var i;
+                if (rand < 0.7) i = 0; //spaceShip
+                else if (rand < 0.9) i = 1;//commend
+                else i = 2; //mother
+                countSpaceShip++;
+                //console.log(countSpaceShip);
+                var $ss = $("<div>").attr({ "data-index": i, "class": spaceships[i].class })
+                    .css({ "left": Math.min(width - 20, width * Math.random()) + "px" })
+                    .animate({ 'top': "+=380" }, {
+                        duration: 1300,
+                        easing: "linear",
+                        progress: function (obj, precenge, time) {
+                            checkgun($(this));
+                        },
+                        complete: function () {
+                            $(this).remove();
+                        }
+                    });
+                spaceships[i].count++;
+                
+                updateTable();
+                $("#board").append($ss);
+                if (countSpaceShip < endGame)
+                {
+                    setTimeout(game, 1000);
+                }
+                else
+                {
+                   
+                  
+                    setTimeout(function () {
+                        alert("Game End! your score is " + $("#totalPoint").html());
+                        location.reload();
+                    }, 2000);
+                   
+                }
+                
+            }
+           
+            function checkgun(e) {
+
+                xLeft = e.css("left");
+                xTop = e.css("top");
+
+                if (e.attr("class") == "gun") {
+                    // console.log("gun!");
+                    $("[data-index]").each(function () {
+                        yLeft = $(this).css("left");
+                        yTop = $(this).css("top");
+
+                        deltaTop = parseInt(yTop) - parseInt(xTop);
+                        deltaLeft = parseInt(yLeft) - parseInt(xLeft);
+
+                        if ((Math.abs(deltaTop) < 10) && (Math.abs(deltaLeft) < 20)) {
+                            spaceships[$(this).attr("data-index")].hit++;
+                            updateTable();
+                            $(this).stop().remove();
+                            e.stop().remove();
+                        }
+                    });
+
+                }
+                else { //halalit
+                    //console.log("halalit!");
+                    $(".gun").each(function () {
+                        yLeft = $(this).css("left");
+                        yTop = $(this).css("top");
+
+                        deltaTop = parseInt(yTop) - parseInt(xTop);
+                        deltaLeft = parseInt(yLeft) - parseInt(xLeft);
+
+                        if ((Math.abs(deltaTop) < 10) && (Math.abs(deltaLeft) < 20)) {
+                            spaceships[e.attr("data-index")].hit++;
+                            updateTable();
+                            $(this).stop().remove();
+                            e.stop().remove();
+                        }
+                    });
+
+
+                }
+
+
+
+
+            }
+            $(document).ready(function () {
+                updateTable();
+                game();
+            });
+
+        </script>
+</head>
+<body dir="rtl" align="center" onkeyup="checkKey()" background="BSP_054.jpg">
+    <div id="wrapper" style="padding:10px;" align="center">
+        <div id="board" align="center">
+
+            <img src="halalit2.png" id="halalit" />
+
+
+
+        </div>
+        <div>
+            <table class="w3-table  w3-striped  w3-centered w3-panel " style="width:450px; height:200px ">
+                <tr class="w3-blue-grey">
+                    <th ></th>
+                    <th>חללית אויב</th>
+                    <th>חללית אויב מפקד</th>
+                    <th> חללית אויב ספינת אם</th>
+                    <th>סכ"ה</th>
+                </tr >
+                <tr class="w3-blue-grey">
+                    <td>פגיעות</td>
+                    <td id="spaceshipHit"></td>
+                    <td id="commendHit"></td>
+                    <td id="motherHit"></td>
+                    <td id="totalHit"></td>
+                </tr>
+                <tr class="w3-blue-grey">
+                    <td>נקודות</td>
+                    <td id="spaceshipPoint"></td>
+                    <td id="commendPoint"></td>
+                    <td id="motherPoint"></td>
+                    <td id="totalPoint"></td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</body>
+</html>
